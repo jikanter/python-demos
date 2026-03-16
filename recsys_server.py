@@ -4,6 +4,7 @@ from datetime import time
 import time # for perf_counter
 from urllib import parse
 import encodings
+import html
 import json
 import os, sys
 from pandas import DataFrame as df
@@ -13,7 +14,7 @@ from pandas import DataFrame as df
 # However, it doesn't work with Target
 
 # This uses the Azure cache via stunnel
-r = redis.Redis(host="localhost", port=6380, db=0, password='changeme')
+r = redis.Redis(host="localhost", port=6380, db=0, password=os.getenv('REDIS_PASSWORD'))
 
 def getClientLibStyles():
     styles = ''
@@ -87,6 +88,15 @@ def app(environ, start_response):
     print(f"profile: {ident}, who: {md['name']}\n")
     mrn = md['mrn']
 
+    # Escape all user/Redis-sourced values before injecting into HTML/JS
+    esc_id = html.escape(str(md["id"]))
+    esc_mrn = html.escape(str(md["mrn"]))
+    esc_region = html.escape(str(md["region"]))
+    esc_ff = html.escape(sDecodeBytes(data))
+    esc_hdp = html.escape(sDecodeBytes(hdp))
+    esc_ident = html.escape(str(ident))
+    esc_name = html.escape(str(name))
+
     pageContent = sContent
     styleContent = KP_STYLESHEETS()
     # minimal routing
@@ -105,23 +115,23 @@ def app(environ, start_response):
             <script>
                 window._dl = {{
                   'profile': {{
-                    'id': '{md["id"]}',
-                    'mrn': '{md["mrn"]}',
-                    'region': '{md["region"]}',
+                    'id': '{esc_id}',
+                    'mrn': '{esc_mrn}',
+                    'region': '{esc_region}',
                     'segments': {{
-                        'ff': '{sDecodeBytes(data)}',
-                        'hdp': '{sDecodeBytes(hdp)}',
+                        'ff': '{esc_ff}',
+                        'hdp': '{esc_hdp}',
                     }}
                   }}
                 }}
                 window.targetPageParams = function() {{
                     return {{
                          "profile": {{
-                            "region": '{md["region"]}',
-                            "ff": '{sDecodeBytes(data)}',
-                            'hdp': '{sDecodeBytes(hdp)}',
-                            "id": '{ident}',
-                            "fname": '{name}'
+                            "region": '{esc_region}',
+                            "ff": '{esc_ff}',
+                            'hdp': '{esc_hdp}',
+                            "id": '{esc_ident}',
+                            "fname": '{esc_name}'
                          }}
                     }}
                 }}
@@ -130,7 +140,7 @@ def app(environ, start_response):
         <body>
             {pageContent}
             <section id="debug">
-            {name} : {sDecodeBytes(data)}<br />
+            {esc_name} : {esc_ff}<br />
             Redis call latency: {toc - tic:0.8f} seconds
             <section>
               <a href="/?p=8">Login as Sally, a non-ER Frequent Flyer (and ML-model physician-driven and computed indicators of heart disease)</a>

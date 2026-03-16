@@ -1,0 +1,18 @@
+// this is a grammar for the ACE (Agentic Context Engineering) DSL.
+
+start: entry+
+
+entry: (tag tagbody)                                 -> ace_entry
+tag: ("@@ACE:")* "[" category "-" tagid "]" ("@@")*  -> tag // need to be a bit more permissive as sometimes these tags
+category: WORD                                       -> category
+tagid: NUMBER                                        -> id
+tagbody: TAGBODYCONTENT                              -> tag_body
+
+TAGBODYCONTENT: /[`\s\r\t\w,.;:<>\?#|{}=\$_\?!\[\]()'"*+&@]/+ "\n"
+
+%import common.LETTER
+%import common.ESCAPED_STRING -> STRING
+%import common.INT -> NUMBER
+%import common.WORD
+%import common.WS
+%ignore WS

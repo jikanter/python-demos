@@ -1,0 +1,5 @@
+c green blue # fg and bg colors
+fill { repeat 36 {
+    f200 l170
+    }
+}

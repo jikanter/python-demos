@@ -1,0 +1,8 @@
+knowledge_base:
+  kb: <path-to-kb/>
+  tag_format: ace
+ingest:
+  format: json
+
+
+

@@ -1,0 +1,22 @@
+start: (arg_or_optional_arg)+
+
+arg_or_optional_arg:  (argument_token)*            -> mandatory_argument
+                   | "[" (argument_token)+ "]"     -> optional_argument
+
+
+argument_token: REPLACED_TOKEN                     -> replaced_token
+                   | WORD                          -> plain_argument
+                   | DASH_TOKEN                    -> short_argument
+                   | DOUBLEDASH_TOKEN              -> long_argument
+                   | DOUBLEDASH_TOKEN WORD         -> long_argument_with_parameter
+
+
+DASH_TOKEN: "-" LETTER
+DOUBLEDASH_TOKEN: "-" "-" LETTER+
+REPLACED_TOKEN: "<" WORD ">"
+
+%import common.LETTER
+%import common.WS
+%import common.WORD
+%ignore WS
+
